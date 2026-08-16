@@ -232,8 +232,8 @@ def oretimers():
     for u in users:
         vote_count = conn.execute("SELECT COUNT(*) FROM votes WHERE user_id = ?", (u['id'],)).fetchone()[0]
         badges = []
-        if u['username'] == 'caytjee': badges.append({'icon': '👑', 'title': 'Founder & Admin'})
-        elif u['username'] == 'torotera': badges.append({'icon': '💻', 'title': 'Developer & Admin'})
+        if u['username'] == 'dc-user-name': badges.append({'icon': '👑', 'title': 'Founder & Admin'})
+        elif u['username'] == 'dc-user-name': badges.append({'icon': '💻', 'title': 'Developer & Admin'})
         
         if u['steam_id']: badges.append({'icon': '🎮', 'title': 'Steam Connected'})
         if vote_count >= 5: badges.append({'icon': '🔥', 'title': 'Veteran Voter'})
@@ -253,7 +253,7 @@ def history():
 
 @app.route('/admin')
 def admin():
-    if session.get('username') not in ['caytjee', 'torotera']: return redirect(url_for('home'))
+    if session.get('username') not in ['dc-user-name', 'dc-user-name']: return redirect(url_for('home'))
     conn = get_db()
     users = conn.execute("SELECT username, steam_id FROM users").fetchall()
     games = conn.execute("SELECT * FROM games ORDER BY name").fetchall()
@@ -262,7 +262,7 @@ def admin():
 
 @app.route('/admin/add_game', methods=['POST'])
 def add_game():
-    if session.get('username') not in ['caytjee', 'torotera']: return redirect(url_for('home'))
+    if session.get('username') not in ['dc-user-name', 'dc-user-name']: return redirect(url_for('home'))
     if request.form.get('game_name') and request.form.get('steam_appid'):
         conn = get_db()
         try: conn.execute("INSERT INTO games (name, steam_appid) VALUES (?, ?)", (request.form.get('game_name'), request.form.get('steam_appid'))), conn.commit()
@@ -272,14 +272,14 @@ def add_game():
 
 @app.route('/admin/delete_game/<int:game_id>', methods=['POST'])
 def delete_game(game_id):
-    if session.get('username') not in ['caytjee', 'torotera']: return redirect(url_for('home'))
+    if session.get('username') not in ['dc-user-name', 'dc-user-name']: return redirect(url_for('home'))
     conn = get_db()
     conn.execute("DELETE FROM games WHERE id = ?", (game_id,)), conn.commit(), conn.close()
     return redirect(url_for('admin'))
 
 @app.route('/admin/toggle_lock', methods=['POST'])
 def toggle_lock():
-    if session.get('username') not in ['caytjee', 'torotera']: return redirect(url_for('home'))
+    if session.get('username') not in ['dc-user-name', 'dc-user-name']: return redirect(url_for('home'))
     conn = get_db()
     current = conn.execute("SELECT value FROM config WHERE key = 'voting_locked'").fetchone()['value']
     new_val = 'false' if current == 'true' else 'true'
@@ -290,7 +290,7 @@ def toggle_lock():
 
 @app.route('/admin/clear_votes', methods=['POST'])
 def clear_votes():
-    if session.get('username') != 'caytjee': return redirect(url_for('admin'))
+    if session.get('username') != 'dc-user-name': return redirect(url_for('admin'))
     conn = get_db()
     conn.execute("DELETE FROM votes"), conn.commit(), conn.close()
     return redirect(url_for('admin'))
