@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="color: var(--accent); margin-bottom: 30px;">🌟 ORETIMERS</h1>
+<p style="opacity: 0.9; margin-bottom: 30px;">All registered players and their legendary badges.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+    {% for u in users %}
+    <div class="box" style="margin: 0; text-align: center; background-color: var(--bg-box); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 60px; background: var(--accent); opacity: 0.2;"></div>
+        
+        <img src="{{ u.avatar }}" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; position: relative; z-index: 10; margin-top: 20px; background: var(--bg-main);">
+        <h2 style="margin: 10px 0 5px 0; font-size: 1.4em;">{{ u.username }}</h2>
+        
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 15px;">
+            {% for badge in u.badges %}
+            <span style="background: var(--input-bg); padding: 5px 10px; border-radius: 20px; font-size: 0.85em; font-weight: bold; border: 1px solid var(--accent);" title="{{ badge.title }}">
+                {{ badge.icon }} {{ badge.title }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

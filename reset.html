@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="box">
+    <h2 style="color: var(--accent);">Reset Password</h2>
+    <p style="color: #888; font-size: 0.9em;">Ask Caytje for the Master PIN if you forgot your password.</p>
+    <form method="POST" action="/reset">
+        <input type="text" name="username" placeholder="Your Username" required><br>
+        <input type="password" name="new_password" placeholder="New Password" required><br>
+        <input type="password" name="master_pin" placeholder="Master PIN" required><br>
+        <button type="submit" style="margin-top: 15px;">Change Password</button>
+    </form>
+    <p style="margin-top: 20px;"><a href="/login" style="color: var(--btn); font-weight: bold; text-decoration: none;">Back to Login</a></p>
+</div>
+{% endblock %}

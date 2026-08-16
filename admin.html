@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="color: var(--accent); margin-bottom: 30px;">⚙️ Admin Panel</h1>
+
+<style>
+    .lock-box-red { border: 2px solid #ff4c4c !important; }
+    .lock-box-green { border: 2px solid #3fb950 !important; }
+</style>
+{% set box_class = 'lock-box-red' if voting_locked else 'lock-box-green' %}
+
+<div class="box {{ box_class }}" style="max-width: 600px; margin: 0 auto 30px auto; background-color: var(--bg-box);">
+    <h2 style="margin-top: 0;">🔒 Voting Control</h2>
+    <p style="font-size: 1.1em; margin-bottom: 20px;">
+        Status: 
+        {% if voting_locked %}
+            <strong style="color: #ff4c4c;">GESPERRT 🔴</strong> (User können nicht mehr abstimmen)
+        {% else %}
+            <strong style="color: #3fb950;">OFFEN 🟢</strong> (User können normal abstimmen)
+        {% endif %}
+    </p>
+    
+    <form action="/admin/toggle_lock" method="POST">
+        {% if voting_locked %}
+            <button type="submit" style="background-color: #3fb950; width: 100%;">Voting wieder öffnen 🟢</button>
+        {% else %}
+            <button type="submit" style="background-color: #ff4c4c; width: 100%;">Voting jetzt einfrieren 🔒</button>
+        {% endif %}
+    </form>
+</div>
+
+<div class="box" style="max-width: 600px; margin: 0 auto; text-align: left; background-color: var(--bg-box);">
+    <h2 style="margin-top: 0; font-size: 1.2em;">Spiele verwalten</h2>
+    <form action="/admin/add_game" method="POST" style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <input type="text" name="game_name" placeholder="Spiel Name" required style="flex: 1;">
+        <input type="text" name="steam_appid" placeholder="Steam AppID (oder 'non')" required style="flex: 1;">
+        <button type="submit" style="margin-top: 0; margin-left: 5px;">Hinzufügen</button>
+    </form>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--accent);">
+            <th style="padding: 10px; text-align: left;">Name</th>
+            <th style="padding: 10px; text-align: left;">Steam ID</th>
+            <th style="padding: 10px; text-align: right;">Aktion</th>
+        </tr>
+        {% for game in games %}
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding: 10px;">{{ game.name }}</td>
+            <td style="padding: 10px;">{{ game.steam_appid }}</td>
+            <td style="padding: 10px; text-align: right;">
+                <form action="/admin/delete_game/{{ game.id }}" method="POST" onsubmit="return confirm('Spiel wirklich löschen?');" style="display: inline;">
+                    <button type="submit" style="background-color: transparent; color: #ff4c4c; padding: 0; margin: 0; font-size: 1.2em;">🗑️</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% if session.get('username') == 'caytjee' %}
+    <hr style="border-color: var(--accent); opacity: 0.3; margin: 20px 0;">
+    <h2 style="font-size: 1.2em;">Gefahrenzone 🚨</h2>
+    <form action="/admin/clear_votes" method="POST" onsubmit="return confirm('Bist du sicher? Das löscht ALLE bisherigen Votes aus der Datenbank!');">
+        <button type="submit" style="background-color: #ff4c4c; width: 100%; margin-top: 10px;">Alle Votes zurücksetzen</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

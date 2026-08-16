@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="box">
+    {% if action == 'login' %}
+        <h2 style="color: var(--accent);">Login</h2>
+        <form method="POST" action="/login">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <button type="submit">Login</button>
+        </form>
+        <p style="margin-top: 15px;"><a href="/reset" style="color: #888; font-size: 0.9em; text-decoration: none;">Forgot Password?</a></p>
+        <p style="margin-top: 25px;">No account yet? <a href="/register" style="color: var(--btn); font-weight: bold; text-decoration: none;">Register here</a></p>
+    {% else %}
+        <h2 style="color: var(--accent);">Create Account</h2>
+        <form method="POST" action="/register">
+            <input type="text" name="username" placeholder="Choose Username" required><br>
+            <input type="password" name="password" placeholder="Choose Password" required><br>
+            <button type="submit">Create Account</button>
+        </form>
+        <p style="margin-top: 20px;">Already have an account? <a href="/login" style="color: var(--btn); font-weight: bold; text-decoration: none;">Login here</a></p>
+    {% endif %}
+</div>
+{% endblock %}

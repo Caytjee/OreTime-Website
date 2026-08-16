@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORETIME Gaming</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% set theme = session.get('theme', 'pink') %}
+    
+    {% if theme == 'dark' %}
+        {% set var_bg_main = '#121212' %}{% set var_bg_box = '#1e1e1e' %}{% set var_text = '#e0e0e0' %}{% set var_accent = '#bb86fc' %}{% set var_btn = '#3700b3' %}{% set var_btn_hover = '#6200ee' %}{% set var_input_bg = '#2d2d2d' %}
+    {% elif theme == 'light' %}
+        {% set var_bg_main = '#f4f4f9' %}{% set var_bg_box = '#ffffff' %}{% set var_text = '#333333' %}{% set var_accent = '#007bff' %}{% set var_btn = '#007bff' %}{% set var_btn_hover = '#0056b3' %}{% set var_input_bg = '#e9ecef' %}
+    {% elif theme == 'hacker' %}
+        {% set var_bg_main = '#0d1117' %}{% set var_bg_box = '#161b22' %}{% set var_text = '#c9d1d9' %}{% set var_accent = '#3fb950' %}{% set var_btn = '#238636' %}{% set var_btn_hover = '#2ea043' %}{% set var_input_bg = '#0d1117' %}
+    {% elif theme == 'ocean' %}
+        {% set var_bg_main = '#0f172a' %}{% set var_bg_box = '#1e293b' %}{% set var_text = '#f1f5f9' %}{% set var_accent = '#38bdf8' %}{% set var_btn = '#0284c7' %}{% set var_btn_hover = '#0ea5e9' %}{% set var_input_bg = '#0f172a' %}
+    {% elif theme == 'cyberpunk' %}
+        {% set var_bg_main = '#0b0914' %}{% set var_bg_box = '#18122b' %}{% set var_text = '#fffb00' %}{% set var_accent = '#ff007f' %}{% set var_btn = '#ff007f' %}{% set var_btn_hover = '#b50059' %}{% set var_input_bg = '#241b3d' %}
+    {% elif theme == 'sunset' %}
+        {% set var_bg_main = '#1a0b2e' %}{% set var_bg_box = '#2d1249' %}{% set var_text = '#ffedd5' %}{% set var_accent = '#fb923c' %}{% set var_btn = '#ea580c' %}{% set var_btn_hover = '#c2410c' %}{% set var_input_bg = '#3b185e' %}
+    {% elif theme == 'matrix' %}
+        {% set var_bg_main = '#000000' %}{% set var_bg_box = '#0a1110' %}{% set var_text = '#00ffcc' %}{% set var_accent = '#00bfff' %}{% set var_btn = '#008080' %}{% set var_btn_hover = '#00a8a8' %}{% set var_input_bg = '#051919' %}
+    {% else %}
+        {% set var_bg_main = '#19141e' %}{% set var_bg_box = '#241b2c' %}{% set var_text = '#f8f8f2' %}{% set var_accent = '#ff79c6' %}{% set var_btn = '#bd93f9' %}{% set var_btn_hover = '#ff79c6' %}{% set var_input_bg = '#32253d' %}
+    {% endif %}
+
+    <style>
+        :root { --bg-main: {{ var_bg_main }}; --bg-box: {{ var_bg_box }}; --text-main: {{ var_text }}; --accent: {{ var_accent }}; --btn: {{ var_btn }}; --btn-hover: {{ var_btn_hover }}; --input-bg: {{ var_input_bg }}; }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', sans-serif; text-align: center; padding-bottom: 50px; transition: 0.3s; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; padding-top: 100px; }
+        .box { background-color: var(--bg-box); color: var(--text-main); border-radius: 12px; padding: 30px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: 0.3s; }
+        h1, h2 { color: var(--accent); }
+        button { background-color: var(--btn); color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 10px; transition: 0.2s; font-weight: bold; }
+        button:hover { background-color: var(--btn-hover); }
+        input, select { padding: 10px; margin: 5px; border-radius: 6px; border: 1px solid var(--accent); width: 80%; background: var(--input-bg); color: var(--text-main); font-size: 16px; box-sizing: border-box; }
+        select option { background-color: var(--bg-box); color: var(--text-main); }
+        
+        .top-navbar { position: fixed; top: 0; left: 0; width: 100%; height: 65px; background: var(--bg-box); border-bottom: 1px solid var(--accent); display: flex; justify-content: space-between; align-items: center; padding: 0 25px; box-sizing: border-box; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        
+        .hamburger { display: none; font-size: 28px; cursor: pointer; color: var(--accent); user-select: none; }
+        .nav-left { display: flex; align-items: center; gap: 25px; transition: 0.3s; }
+        .nav-brand { font-weight: 900; font-size: 1.3em; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { color: var(--text-main); text-decoration: none; font-weight: bold; font-size: 1.05em; transition: 0.2s; opacity: 0.8; }
+        .nav-links a:hover { color: var(--accent); opacity: 1; }
+
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 65px; left: 0; width: 100%; background: var(--bg-box); border-bottom: 2px solid var(--accent); padding: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+            .nav-links.active { display: flex; }
+        }
+        
+        .nav-right { position: relative; display: flex; align-items: center; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; transition: 0.2s; }
+        .avatar:hover { transform: scale(1.05); }
+        
+        .dropdown-menu { display: none; position: absolute; right: 0; top: 55px; background: var(--bg-box); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; width: 220px; box-shadow: 0 8px 16px rgba(0,0,0,0.6); text-align: left; }
+        .dropdown-menu label { font-size: 0.9em; font-weight: bold; color: var(--text-main); display: block; margin-bottom: 5px; }
+        .dropdown-menu a { display: block; color: var(--text-main); text-decoration: none; padding: 8px 0; font-weight: bold; font-size: 1em; transition: 0.2s; }
+        .dropdown-menu a:hover { color: var(--accent); }
+        .dropdown-menu hr { border: 0; border-top: 1px solid var(--accent); opacity: 0.2; margin: 10px 0; }
+        .logout-link { color: #ff4c4c !important; }
+        .logout-link:hover { color: #ff1a1a !important; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--accent); font-weight: bold; transition: 0.2s; }
+        .modal-close:hover { color: #ff4c4c; }
+
+        .footer-right { position: fixed; bottom: 15px; right: 20px; opacity: 0.6; color: var(--text-main); font-weight: bold; font-size: 1.1em; pointer-events: none; text-align: right; line-height: 1.3; z-index: 100; }
+        #python-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -100; overflow: hidden; pointer-events: none; }
+        .bg-code-line { position: absolute; font-family: 'Courier New', Courier, monospace; color: var(--accent); white-space: nowrap; user-select: none; animation: floatUp linear infinite; text-shadow: 0 0 5px var(--accent); }
+        @keyframes floatUp { 0% { transform: translateY(105vh); opacity: 0; } 10% { opacity: 0.15; } 90% { opacity: 0.15; } 100% { transform: translateY(-10vh); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    {% if session.get('user_id') %}
+    <header class="top-navbar">
+        <div class="nav-left">
+            <div class="hamburger" id="hamburger-btn">☰</div>
+            <span class="nav-brand">ORETIME</span>
+            
+            <div class="nav-links" id="mobile-nav">
+                <a href="/home">Homepage</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/events">Events</a>
+                <a href="/history">History</a>
+                <a href="https://discord.gg/mKgw4u2wp2" target="_blank" style="display: flex; align-items: center; gap: 5px; color: #5865F2; font-weight: 900;">👾 Discord</a>
+            </div>
+        </div>
+        
+        <div class="nav-right">
+            <img src="{{ user_avatar }}" alt="Profile" class="avatar" id="avatar-btn">
+            
+            <div class="dropdown-menu" id="profile-dropdown">
+                <form action="/profile" method="POST" id="theme-form">
+                    <label>Theme:</label>
+                    <select name="theme" style="width: 100%; margin: 0; padding: 8px;" onchange="this.form.submit()">
+                        <option value="pink" {% if theme == 'pink' %}selected{% endif %}>Pink Vibe (Default)</option>
+                        <option value="dark" {% if theme == 'dark' %}selected{% endif %}>Dark Mode (Grau)</option>
+                        <option value="light" {% if theme == 'light' %}selected{% endif %}>Light Mode (Hell)</option>
+                        <option value="hacker" {% if theme == 'hacker' %}selected{% endif %}>Hacker (Green)</option>
+                        <option value="ocean" {% if theme == 'ocean' %}selected{% endif %}>Ocean (Blue)</option>
+                        <option value="cyberpunk" {% if theme == 'cyberpunk' %}selected{% endif %}>Cyberpunk (Neon)</option>
+                        <option value="sunset" {% if theme == 'sunset' %}selected{% endif %}>Sunset (Orange)</option>
+                        <option value="matrix" {% if theme == 'matrix' %}selected{% endif %}>Matrix (Cyan)</option>
+                    </select>
+                </form>
+                <hr>
+                <a href="/oretimers">🌟 ORETIMERS</a>
+                <a href="#" id="open-steam-modal">🔗 Connect Steam</a>
+                <a href="#" id="open-credits-modal">🎬 Credits</a>
+                
+                {% if session.get('username') in ['caytjee', 'torotera'] %}
+                <hr>
+                <a href="/admin">⚙️ Admin Panel</a>
+                {% endif %}
+                <hr>
+                <a href="/logout" class="logout-link">🚪 Logout</a>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <div id="steam-modal" class="modal-overlay">
+        <div class="box" style="position: relative; width: 90%; max-width: 400px; margin: 0; text-align: left;">
+            <span class="modal-close" id="close-steam-modal">&times;</span>
+            <h2 style="margin-top: 0;">Connect Steam</h2>
+            <form action="/profile" method="POST">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Steam ID64:</label>
+                <input type="text" name="steam_id" value="{{ session.get('steam_id', '') }}" placeholder="e.g. 76561198..." style="width: 100%; margin-left: 0;">
+                <div style="margin-top: 8px; font-size: 0.85em; text-align: right;"><a href="https://steamid.io/" target="_blank" style="color: var(--accent); text-decoration: none;">How do I find my Steam ID? ↗</a></div>
+                <input type="hidden" name="theme" value="{{ theme }}">
+                <button type="submit" style="width: 100%; margin-top: 20px;">Save Steam ID</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="credits-modal" class="modal-overlay">
+        <div class="box" style="position: relative; width: 90%; max-width: 400px; margin: 0; text-align: center;">
+            <span class="modal-close" id="close-credits-modal">&times;</span>
+            <h2 style="margin-top: 0;">Credits & Mitwirkende 🎬</h2>
+            <ul style="list-style: none; padding: 0; text-align: left; margin-top: 20px;">
+                <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="color: var(--accent);">🛠️ Main Developer:</strong><br>
+                    Caytje & Tony
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="color: var(--accent);">💻 Website Code:</strong><br>
+                    Written by Caytje
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="color: var(--accent);">🎨 UI & UX Design:</strong><br>
+                    Made by Caytje
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="color: var(--accent);">🖥️ Server Hosting:</strong><br>
+                    Hosted by Elive
+                </li>
+                <li style="padding: 10px 0;">
+                    <strong style="color: var(--accent);">🎮 Organization:</strong><br>
+                    ORETIMER Community
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <div class="footer-right">
+        made by Caytje<br>
+        <span style="font-size: 0.75em; opacity: 0.8;">version 1.9.5</span>
+    </div>
+
+    <div id="python-bg"></div>
+
+    <script>
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileNav = document.getElementById('mobile-nav');
+        if (hamburgerBtn) {
+            hamburgerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileNav.classList.toggle('active');
+            });
+        }
+
+        const avatarBtn = document.getElementById('avatar-btn');
+        const dropdown = document.getElementById('profile-dropdown');
+        const steamBtn = document.getElementById('open-steam-modal');
+        const steamModal = document.getElementById('steam-modal');
+        const closeSteamModal = document.getElementById('close-steam-modal');
+        const creditsBtn = document.getElementById('open-credits-modal');
+        const creditsModal = document.getElementById('credits-modal');
+        const closeCreditsModal = document.getElementById('close-credits-modal');
+
+        if(avatarBtn) {
+            avatarBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            });
+        }
+
+        window.addEventListener('click', (e) => {
+            if (dropdown && !dropdown.contains(e.target) && e.target !== avatarBtn) dropdown.style.display = 'none';
+            if (mobileNav && !mobileNav.contains(e.target) && e.target !== hamburgerBtn) mobileNav.classList.remove('active');
+            if (e.target === steamModal) steamModal.style.display = 'none';
+            if (e.target === creditsModal) creditsModal.style.display = 'none';
+        });
+
+        if(steamBtn) steamBtn.addEventListener('click', (e) => { e.preventDefault(); dropdown.style.display = 'none'; steamModal.style.display = 'flex'; });
+        if(closeSteamModal) closeSteamModal.addEventListener('click', () => steamModal.style.display = 'none');
+        if(creditsBtn) creditsBtn.addEventListener('click', (e) => { e.preventDefault(); dropdown.style.display = 'none'; creditsModal.style.display = 'flex'; });
+        if(closeCreditsModal) closeCreditsModal.addEventListener('click', () => creditsModal.style.display = 'none');
+
+        const snippets = ["def get_db():", "conn = sqlite3.connect('database.db')", "@app.route('/events')", "conn.execute('SELECT * FROM users')", "session['theme'] = theme", "@tasks.loop(seconds=30)", "async def check_schedule():", "await channel.send('OreTime Session startet!')", "if __name__ == '__main__':", "app.run(debug=True)", "return render_template('home.html')", "STEAM_API_KEY = '*******'", "def vote():", "import requests", "print('System Online...')"];
+        const bgContainer = document.getElementById('python-bg');
+        function spawnCode() {
+            const el = document.createElement('div');
+            el.className = 'bg-code-line';
+            el.innerText = snippets[Math.floor(Math.random() * snippets.length)];
+            el.style.left = Math.random() * 90 + 'vw';
+            const size = Math.random() * 14 + 10;
+            el.style.fontSize = size + 'px';
+            el.style.opacity = (size / 50).toString();
+            el.style.animationDuration = (Math.random() * 15 + 15) + 's';
+            bgContainer.appendChild(el);
+            setTimeout(() => { el.remove(); }, 32000);
+        }
+        for(let i=0; i<15; i++) { setTimeout(spawnCode, Math.random() * 3000); }
+        setInterval(spawnCode, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="background: var(--bg-box); border: 1px solid var(--accent); border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+    <div style="display: flex; align-items: center; gap: 15px; text-align: left;">
+        <img src="{{ user_avatar }}" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover;">
+        <div>
+            <h1 style="margin: 0; font-size: 1.5em; color: var(--accent);">Welcome to ORETIME Gaming 🎮</h1>
+            <p style="margin: 5px 0 0 0; opacity: 0.8; font-size: 0.95em;">Welcome back, {{ session.get('username', 'Gamer') }}! Ready for Saturday?</p>
+        </div>
+    </div>
+    <div>
+        <a href="{{ url_for('events') }}"><button style="margin: 0;">Vote Now 🗳️</button></a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+    <div class="box" style="margin: 0; text-align: left; background-color: var(--bg-box);">
+        <h2 style="margin-top: 0; font-size: 1.3em;">📅 Next Session</h2>
+        <p style="font-size: 1.2em; font-weight: bold; margin: 15px 0;">Saturday, {{ next_sat }}</p>
+        <div style="margin: 15px 0; padding: 12px; background: var(--input-bg); border-radius: 8px; font-weight: bold; text-align: center; border: 1px dashed var(--accent); font-size: 1.1em;">
+            ⏳ <span id="countdown-timer">Calculating countdown...</span>
+        </div>
+        <p style="opacity: 0.8; font-size: 0.95em; line-height: 1.4;">Pick your top 3 games for this weekend's power ranking!</p>
+    </div>
+
+    <div class="box" style="margin: 0; text-align: left; background-color: var(--bg-box); border-left: 5px solid var(--accent);">
+        <h2 style="margin-top: 0; font-size: 1.3em;">🔥 Game of the Week</h2>
+        <div style="background: var(--input-bg); padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
+            {% set appid = game_appids.get(winner, 'non') %}
+            {% if appid != 'non' and winner != 'TBD (No votes yet)' %}
+                <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/{{ appid }}/header.jpg" alt="{{ winner }}" style="width: 100%; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--accent);">
+            {% endif %}
+            <span style="font-size: 1.4em; font-weight: bold; color: var(--accent);">{{ winner }}</span>
+        </div>
+        <p style="opacity: 0.8; font-size: 0.90em; line-height: 1.4;">The reigning winning game or current favorite for our next round.</p>
+    </div>
+
+    <div class="box" style="margin: 0; text-align: left; background-color: var(--bg-box);">
+        <h2 style="margin-top: 0; font-size: 1.3em;">🏆 Quick History</h2>
+        <ul style="list-style: none; padding: 0; margin: 15px 0 0 0;">
+            <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Last Saturday:</strong> 🎮 {{ last_winner }}</li>
+        </ul>
+        <a href="/history"><button style="width: 100%; margin-top: 15px; background: transparent; border: 1px solid var(--accent); color: var(--accent);">Full Archive 📜</button></a>
+    </div>
+</div>
+
+<script>
+function updateCountdown() {
+    const now = new Date();
+    const resultDate = new Date(now);
+    resultDate.setDate(now.getDate() + (6 + 7 - now.getDay()) % 7);
+    resultDate.setHours(20, 0, 0, 0);
+
+    const diff = resultDate - now;
+    if (diff <= 0) { document.getElementById("countdown-timer").innerHTML = "Session is live!"; return; }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById("countdown-timer").innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+}
+setInterval(updateCountdown, 1000); updateCountdown();
+</script>
+{% endblock %}

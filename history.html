@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="color: var(--accent); margin-bottom: 30px;">📜 The ORETIME Archives</h1>
+<p style="opacity: 0.9; margin-bottom: 30px;">A look back at our past Gaming Saturdays.</p>
+
+<div style="max-width: 600px; margin: 0 auto; text-align: left;">
+    {% for entry in history_data %}
+    <div class="box" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--accent);">
+        <div>
+            <span style="font-weight: bold; font-size: 1.2em; display: block; margin-bottom: 5px;">{{ entry.date }}</span>
+            <span style="color: var(--accent); font-size: 1.4em; font-weight: 900;">{{ entry.winner }}</span>
+        </div>
+        
+        {% set appid = game_appids.get(entry.winner, 'non') %}
+        {% if appid != 'non' and entry.winner != 'TBD (No votes yet)' %}
+        <div>
+            <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/{{ appid }}/capsule_184x69.jpg" alt="Cover" style="width: 120px; border-radius: 4px; border: 1px solid var(--accent);">
+        </div>
+        {% else %}
+        <div style="font-size: 2em; opacity: 0.5;">🎮</div>
+        {% endif %}
+    </div>
+    {% else %}
+    <p style="text-align: center; opacity: 0.8;">No past records found yet!</p>
+    {% endfor %}
+</div>
+{% endblock %}

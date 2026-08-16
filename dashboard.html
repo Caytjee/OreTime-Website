@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="color: var(--accent);">Session History</h1>
+<p style="opacity: 0.8; margin-bottom: 25px;">Overview of the last 5 past Saturday gaming sessions.</p>
+
+{% for item in dashboard_data %}
+<div class="box" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+    <h2 style="color: var(--accent); margin: 0; font-size: 1.3em;">Saturday, {{ item.date }}</h2>
+    <div style="text-align: right; background-color: var(--input-bg); padding: 10px 15px; border-radius: 8px;">
+        <span style="color: #999; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px;">Winner</span><br>
+        <strong style="color: var(--accent); font-size: 1.2em;">{{ item.winner }}</strong>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
