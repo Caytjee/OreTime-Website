@@ -6,10 +6,10 @@ from datetime import date, timedelta
 app = Flask(__name__)
 app.secret_key = "gaming_saturday_secret"
 
-STEAM_API_KEY = "2CDCC53DD6417C157A68B43C3C5C7B9B"
-DISCORD_CLIENT_ID = "1538330044353617930"
-DISCORD_CLIENT_SECRET = "nKs93UbX7nizi_O9oGWjo6SnWOZZ1I9E" 
-DISCORD_REDIRECT_URI = "https://caytje.pythonanywhere.com/callback"
+STEAM_API_KEY = "123456789"
+DISCORD_CLIENT_ID = "123456789"
+DISCORD_CLIENT_SECRET = "123456789" 
+DISCORD_REDIRECT_URI = "https://your-website.???/callback"
 
 DISCORD_AUTH_URL = "https://discord.com/oauth2/authorize"
 DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
