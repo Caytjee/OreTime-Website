@@ -55,7 +55,7 @@
         {% endfor %}
     </table>
 
-    {% if session.get('username') == 'caytjee' %}
+    {% if session.get('username') == 'dc-user-name' %}
     <hr style="border-color: var(--accent); opacity: 0.3; margin: 20px 0;">
     <h2 style="font-size: 1.2em;">Gefahrenzone 🚨</h2>
     <form action="/admin/clear_votes" method="POST" onsubmit="return confirm('Bist du sicher? Das löscht ALLE bisherigen Votes aus der Datenbank!');">
