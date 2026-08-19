@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>💡 Suggest a Game</h1>
+    <p class="page-sub">Send a game request directly to the admins!</p>
+</div>
+
+<div class="box" style="max-width: 500px; margin: 0 auto; text-align: left;">
+    {% if success %}
+    <div class="alert-ok">
+        ✅ Request sent to the Admin Panel!
+    </div>
+    {% endif %}
+
+    <form method="POST" class="form-stack">
+        <div>
+            <label class="form-label">Game Name:</label>
+            <input type="text" name="game_name" required placeholder="e.g. Lethal Company">
+        </div>
+        <button type="submit" class="btn-full">Send Request 🚀</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>📜 The Archives &amp; Hall of Fame</h1>
+    <p class="page-sub">All-time statistics and past Saturday results.</p>
+</div>
+
+<div class="card-grid" style="margin-bottom: 36px;">
+
+    <div class="box" style="border-top: 4px solid #ffd700; text-align: left;">
+        <h2 style="margin-top: 0; color: #ffd700;">🏆 All-Time Top 3</h2>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            {% for game, score in top_games %}
+            <li style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                <span style="font-size: 1.08em; font-weight: 800;">
+                    {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% else %}🥉{% endif %} {{ game }}
+                </span>
+                <span class="stat-pill">{{ score }} pts</span>
+            </li>
+            {% else %}
+            <li class="muted">No votes recorded yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="box" style="border-top: 4px solid var(--accent); text-align: left; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h2 style="margin-top: 0; width: 100%; text-align: left;">⭐ MVP Voter</h2>
+        {% if mvp %}
+        <img src="{{ mvp.avatar or default_avatar }}" alt="MVP Avatar" onclick='openPlayerCard({{ mvp.username | tojson }})' style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 10px; object-fit: cover; cursor: pointer;">
+        <span onclick='openPlayerCard({{ mvp.username | tojson }})' style="cursor: pointer; text-decoration: underline; text-decoration-color: var(--accent); color: var(--accent); font-weight: 800;">{{ mvp.username }}</span>
+        <p class="muted" style="margin: 6px 0 0 0;">Most active participant ({{ mvp.vote_count }} votes)</p>
+        {% else %}
+        <p class="muted">No active voters yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<div class="page-header">
+    <h1>📜 The ORETIME Archives</h1>
+    <p class="page-sub">A look back at our past Gaming Saturdays.</p>
+</div>
+
+<div style="max-width: 640px; margin: 0 auto;">
+    {% for entry in history_data %}
+    <div class="box history-row">
+        <div>
+            <span style="font-weight: 800; font-size: 1.1em; display: block; margin-bottom: 5px;">{{ entry.date }}</span>
+            <span style="color: var(--accent); font-size: 1.35em; font-weight: 900;">{{ entry.winner }}</span>
+        </div>
+
+        {% set appid = game_appids.get(entry.winner, 'non') %}
+        {% if appid != 'non' and entry.winner != 'TBD (No votes yet)' %}
+        <div>
+            <img src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{{ appid }}/capsule_184x69.jpg" alt="{{ entry.winner }}" data-appid="{{ appid }}" data-name="{{ entry.winner }}" data-steam-asset="capsule_184x69.jpg" onerror="steamImgFallback(this)" style="width: 120px; border-radius: 6px; border: 1px solid var(--accent);">
+        </div>
+        {% else %}
+        <div style="font-size: 2em; opacity: 0.5;">🎮</div>
+        {% endif %}
+    </div>
+    {% else %}
+    <p class="muted">No past records found yet!</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1 style="color: #00e5ff; text-shadow: 0 0 15px rgba(0,229,255,0.5);">🖥️ The Armory</h1>
+    <p class="page-sub">Inspect the hardware and settings of your fellow ORETIMERs.</p>
+</div>
+
+<div class="box" style="max-width: 640px; margin: 0 auto 36px auto; text-align: left; border: 1px solid #00e5ff;">
+    <h2 style="margin-top: 0; color: #00e5ff;">Update your Gear</h2>
+    <form method="POST" class="armory-form">
+        <div>
+            <label class="form-label" style="color: var(--text-main);">CPU:</label>
+            <input type="text" name="cpu" value="{{ my_setup.cpu if my_setup else '' }}" placeholder="e.g. Ryzen 7 5800X3D" style="width: 100%;">
+        </div>
+        <div>
+            <label class="form-label" style="color: var(--text-main);">GPU:</label>
+            <input type="text" name="gpu" value="{{ my_setup.gpu if my_setup else '' }}" placeholder="e.g. RTX 4070" style="width: 100%;">
+        </div>
+        <div>
+            <label class="form-label" style="color: var(--text-main);">Mouse:</label>
+            <input type="text" name="mouse" value="{{ my_setup.mouse if my_setup else '' }}" placeholder="e.g. Logitech G Pro X" style="width: 100%;">
+        </div>
+        <div>
+            <label class="form-label" style="color: var(--text-main);">Keyboard:</label>
+            <input type="text" name="keyboard" value="{{ my_setup.keyboard if my_setup else '' }}" placeholder="e.g. Wooting 60HE" style="width: 100%;">
+        </div>
+        <button type="submit" class="btn-full" style="grid-column: span 2; background: #00e5ff; color: #000;">Save Loadout</button>
+    </form>
+</div>
+
+<div class="card-grid">
+    {% for setup in setups %}
+    <div class="box gear-card">
+        <h3 style="margin: 0 0 14px 0; color: white;">
+            <span onclick='openPlayerCard({{ setup.username | tojson }})' style="cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='white'">{{ setup.username }}</span>'s Rig
+        </h3>
+
+        <ul>
+            <li><strong style="color: #00e5ff;">CPU:</strong> {{ setup.cpu or 'Unknown' }}</li>
+            <li><strong style="color: #00e5ff;">GPU:</strong> {{ setup.gpu or 'Unknown' }}</li>
+            <li><strong style="color: #00e5ff;">Mouse:</strong> {{ setup.mouse or 'Unknown' }}</li>
+            <li><strong style="color: #00e5ff;">Keyboard:</strong> {{ setup.keyboard or 'Unknown' }}</li>
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

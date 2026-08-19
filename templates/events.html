@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% set next_sat = saturdays[0] %}
+
+<style>
+    .steam-card { position: relative; overflow: hidden; background: var(--bg-box); border-radius: var(--radius); width: 250px; display: flex; flex-direction: column; transition: 0.3s; border: var(--border); box-shadow: var(--shadow); }
+    .steam-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.4); }
+    .steam-banner { width: 100%; height: 115px; object-fit: cover; border-bottom: 2px solid var(--accent); }
+    .steam-box-green { border: 2px solid #3fb950; }
+    .steam-box-accent { border: 2px solid var(--accent); }
+</style>
+
+<div class="page-header">
+    <h1>🎮 Session: {{ next_sat }}</h1>
+    <p class="page-sub">Vote, check the ranking, Steam ownership, and who is deploying.</p>
+</div>
+
+{% if voting_locked %}
+<div class="alert-lock">
+    <h2>🔒 Voting Closed</h2>
+    <p style="margin: 6px 0 0 0; font-weight: 800;">The voting for this Saturday has been locked by an admin!</p>
+</div>
+{% endif %}
+
+<div class="tab-container">
+    <button class="tab-btn active" onclick="openTab('tab-vote', this)">🗳️ Vote</button>
+    <button class="tab-btn" onclick="openTab('tab-ranking', this)">📊 Live Ranking</button>
+    <button class="tab-btn" onclick="openTab('tab-steam', this)">🔗 Steam Check</button>
+    <button class="tab-btn" onclick="openTab('tab-radar', this)">📡 Deployment Radar</button>
+</div>
+
+<div id="tab-vote" class="tab-content active">
+    {% if not voting_locked %}
+    <div class="box" style="text-align: left; max-width: 600px; margin: 0 auto;">
+        <h2 style="margin-top: 0; text-align: center;">Choose your Favorites (Optional):</h2>
+        <form action="/vote" method="POST" class="form-stack">
+            <input type="hidden" name="target_date" value="{{ next_sat }}">
+
+            <div>
+                <label class="form-label">Rank 1 (3 Points):</label>
+                <select name="game1">
+                    <option value="">-- Select a game (optional) --</option>
+                    {% for game in games %}
+                        <option value="{{ game }}" {% if user_votes[next_sat] and user_votes[next_sat]['game1'] == game %}selected{% endif %}>{{ game }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Rank 2 (2 Points):</label>
+                <select name="game2">
+                    <option value="">-- Select a game (optional) --</option>
+                    {% for game in games %}
+                        <option value="{{ game }}" {% if user_votes[next_sat] and user_votes[next_sat]['game2'] == game %}selected{% endif %}>{{ game }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Rank 3 (1 Point):</label>
+                <select name="game3">
+                    <option value="">-- Select a game (optional) --</option>
+                    {% for game in games %}
+                        <option value="{{ game }}" {% if user_votes[next_sat] and user_votes[next_sat]['game3'] == game %}selected{% endif %}>{{ game }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn-full">VOTE! 🚀</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="box"><p>Voting is currently disabled.</p></div>
+    {% endif %}
+</div>
+
+<div id="tab-ranking" class="tab-content">
+    <div class="box" style="padding: 20px; max-width: 800px; margin: 0 auto;">
+        <h2 style="margin-top: 0;">📊 Live Power Ranking</h2>
+        <canvas id="voteChart" height="120"></canvas>
+    </div>
+</div>
+
+<div id="tab-steam" class="tab-content">
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 30px;">
+        {% for game, stats in steam_stats.items() %}
+            {% if stats.is_steam %}
+
+                {% set border_class = 'steam-box-green' if stats.missing_count == 0 else 'steam-box-accent' %}
+                {% set appid = game_appids.get(game, 'non') %}
+
+                <div class="steam-card {{ border_class }}">
+                    <img src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{{ appid }}/header.jpg" alt="{{ game }}" class="steam-banner" data-appid="{{ appid }}" data-name="{{ game }}" onerror="steamImgFallback(this)">
+
+                    <div style="padding: 15px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 1.15em; color: var(--text-main);">{{ game }}</h3>
+                        {% if stats.missing_count == 0 %}
+                            <span style="color: #3fb950; font-weight: 800; font-size: 1.05em;">✅ Everyone has it!</span>
+                        {% else %}
+                            <span style="color: #ff4c4c; font-weight: 800;">❌ Missing for:</span>
+                            <div style="font-size: 0.9em; opacity: 0.9; margin-top: 5px; color: var(--text-main); word-wrap: break-word;">
+                                {% for name in stats.missing_users %}{% if not loop.first %}, {% endif %}<span onclick='openPlayerCard({{ name | tojson }})' style="cursor: pointer;">{{ name }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div id="tab-radar" class="tab-content">
+    <div class="box" style="margin: 0 auto; padding: 24px; text-align: center; max-width: 800px;">
+        <h2 style="color: var(--accent); margin-top: 0;">📡 Deployment Status</h2>
+        <p class="muted" style="margin-bottom: 28px;">Who is playing this Saturday? ({{ saturdays[0] }})</p>
+
+        <div class="radar-cols">
+            <div class="radar-col in">
+                <h3 style="color: #4CAF50; margin-top: 0;">🟢 IN ({{ radar_data['yes']|length }})</h3>
+                <div class="radar-avatars">
+                    {% for u in radar_data['yes'] %}
+                    <img src="{{ u.avatar or default_avatar }}" onclick='openPlayerCard({{ u.username | tojson }})' data-tooltip="{{ u.username }}" style="width: 40px; height: 40px; border: 2px solid #4CAF50;">
+                    {% else %} <span class="muted" style="font-size:0.9em;">None yet</span> {% endfor %}
+                </div>
+            </div>
+            <div class="radar-col maybe">
+                <h3 style="color: #FFC107; margin-top: 0;">🟡 MAYBE ({{ radar_data['maybe']|length }})</h3>
+                <div class="radar-avatars">
+                    {% for u in radar_data['maybe'] %}
+                    <img src="{{ u.avatar or default_avatar }}" onclick='openPlayerCard({{ u.username | tojson }})' data-tooltip="{{ u.username }}" style="width: 40px; height: 40px; border: 2px solid #FFC107;">
+                    {% else %} <span class="muted" style="font-size:0.9em;">None yet</span> {% endfor %}
+                </div>
+            </div>
+            <div class="radar-col out">
+                <h3 style="color: #F44336; margin-top: 0;">🔴 OUT ({{ radar_data['no']|length }})</h3>
+                <div class="radar-avatars">
+                    {% for u in radar_data['no'] %}
+                    <img src="{{ u.avatar or default_avatar }}" onclick='openPlayerCard({{ u.username | tojson }})' data-tooltip="{{ u.username }}" style="width: 40px; height: 40px; border: 2px solid #F44336; filter: grayscale(100%); opacity:0.6;">
+                    {% else %} <span class="muted" style="font-size:0.9em;">None yet</span> {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let voteChart = null;
+
+    function ensureVoteChart() {
+        const canvas = document.getElementById('voteChart');
+        if (!canvas) return;
+        if (voteChart) {
+            voteChart.resize();
+            return;
+        }
+
+        const rootStyles = getComputedStyle(document.documentElement);
+        const accentColor = rootStyles.getPropertyValue('--accent').trim();
+
+        const rawData = {{ saturday_stats[next_sat] | tojson }};
+        const labels = Object.keys(rawData);
+        const dataPoints = Object.values(rawData);
+
+        const ctx = canvas.getContext('2d');
+        voteChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Points (Live)',
+                    data: dataPoints,
+                    backgroundColor: accentColor + '80',
+                    borderColor: accentColor,
+                    borderWidth: 2,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#ffffff', stepSize: 1 },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#ffffff' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function openTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        btnElement.classList.add('active');
+        if (tabId === 'tab-ranking') {
+            setTimeout(ensureVoteChart, 50);
+        }
+    }
+
+    function updateVoteDropdowns() {
+        const selects = [
+            document.querySelector('select[name="game1"]'),
+            document.querySelector('select[name="game2"]'),
+            document.querySelector('select[name="game3"]')
+        ];
+
+        if (!selects[0]) return;
+
+        const selectedGames = selects.map(s => s.value).filter(v => v !== "");
+
+        selects.forEach(select => {
+            select.querySelectorAll('option').forEach(option => {
+                if (option.value === "") return;
+
+                if (selectedGames.includes(option.value) && select.value !== option.value) {
+                    option.disabled = true;
+                    option.style.color = "#555555";
+                } else {
+                    option.disabled = false;
+                    option.style.color = "";
+                }
+            });
+        });
+    }
+
+    const voteSelects = document.querySelectorAll('select[name^="game"]');
+    if (voteSelects.length > 0) {
+        voteSelects.forEach(select => select.addEventListener('change', updateVoteDropdowns));
+        updateVoteDropdowns();
+    }
+</script>
+{% endblock %}

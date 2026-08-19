@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    #roulette-result { display: none; margin-top: 30px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .spin-btn { background: var(--accent); color: white; border: none; padding: 20px 40px; font-size: 1.4em; border-radius: 12px; cursor: pointer; font-weight: 900; box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 35%, transparent); transition: 0.2s; margin-top: 0; letter-spacing: 0.04em; }
+    .spin-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px color-mix(in srgb, var(--accent) 45%, transparent); background: var(--btn-hover); }
+</style>
+
+<div class="page-header">
+    <h1>🎲 Roulette</h1>
+    <p class="page-sub">Can't decide what to play? Let the system choose!</p>
+</div>
+
+<button class="spin-btn" onclick="spinWheel()">SPIN THE WHEEL!</button>
+
+<div id="roulette-result" class="box" style="max-width: 420px; margin-left: auto; margin-right: auto; padding: 32px;">
+    <h2 style="margin-top: 0; opacity: 0.8;">You will play:</h2>
+    <h1 id="result-name" style="color: var(--accent); margin: 10px 0; font-size: 2.4em; word-break: break-word;"></h1>
+</div>
+
+<script>
+    const games = {{ games | tojson | safe }};
+
+    function spinWheel() {
+        const btn = document.querySelector('.spin-btn');
+        if (!games || games.length === 0) {
+            document.getElementById('roulette-result').style.display = 'block';
+            document.getElementById('result-name').innerText = "No games available";
+            return;
+        }
+        btn.disabled = true;
+        btn.innerText = "SPINNING...";
+
+        let times = 0;
+        const resultDiv = document.getElementById('roulette-result');
+        const resultName = document.getElementById('result-name');
+        resultDiv.style.display = 'block';
+
+        const interval = setInterval(() => {
+            resultName.innerText = games[Math.floor(Math.random() * games.length)];
+            resultName.style.color = "#ffffff";
+            times++;
+
+            if(times > 25) {
+                clearInterval(interval);
+                btn.disabled = false;
+                btn.innerText = "SPIN AGAIN!";
+                resultName.style.color = "var(--accent)";
+
+                if (typeof confetti === "function") {
+                    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+                }
+            }
+        }, 80);
+    }
+</script>
+{% endblock %}

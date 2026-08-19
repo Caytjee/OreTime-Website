@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>⚙️ Admin Panel</h1>
+    <p class="page-sub">Voting lock, game list, and wishlist requests.</p>
+</div>
+
+<style>
+    .lock-box-red { border: 2px solid #ff4c4c !important; }
+    .lock-box-green { border: 2px solid #3fb950 !important; }
+</style>
+
+<div class="tab-container">
+    <button class="tab-btn active" onclick="openAdminTab('tab-manage', this)">⚙️ Management</button>
+    <button class="tab-btn" onclick="openAdminTab('tab-wishlist', this)">💡 Wishlist Requests</button>
+</div>
+
+<div id="tab-manage" class="tab-content active">
+    {% set box_class = 'lock-box-red' if voting_locked else 'lock-box-green' %}
+
+    <div class="box {{ box_class }}" style="max-width: 600px; margin: 0 auto 28px auto;">
+        <h2 style="margin-top: 0;">🔒 Voting Control</h2>
+        <p style="font-size: 1.05em; margin-bottom: 20px;">
+            Status:
+            {% if voting_locked %}
+                <strong style="color: #ff4c4c;">LOCKED 🔴</strong> (Voting is currently disabled)
+            {% else %}
+                <strong style="color: #3fb950;">OPEN 🟢</strong> (Voting is enabled)
+            {% endif %}
+        </p>
+
+        <form action="/admin/toggle_lock" method="POST">
+            {% if voting_locked %}
+                <button type="submit" style="background-color: #3fb950; width: 100%;">Unlock Voting 🟢</button>
+            {% else %}
+                <button type="submit" style="background-color: #ff4c4c; width: 100%;">Lock Voting 🔒</button>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="box" style="max-width: 600px; margin: 0 auto; text-align: left;">
+        <h2 style="margin-top: 0; font-size: 1.2em;">Manage Games</h2>
+        <form action="/admin/add_game" method="POST" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+            <input type="text" name="game_name" placeholder="Game Name" required style="flex: 1; min-width: 140px; width: auto;">
+            <input type="text" name="steam_appid" placeholder="Steam AppID (or 'non')" required style="flex: 1; min-width: 140px; width: auto;">
+            <button type="submit" style="margin-top: 0;">Add</button>
+        </form>
+
+        <table class="data-table">
+            <tr>
+                <th>Name</th>
+                <th>Steam ID</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+            {% for game in games %}
+            <tr>
+                <td>{{ game.name }}</td>
+                <td>{{ game.steam_appid }}</td>
+                <td style="text-align: right;">
+                    <form action="/admin/delete_game/{{ game.id }}" method="POST" onsubmit="return confirm('Delete this game?');" style="display: inline;">
+                        <button type="submit" class="icon-btn">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% if session.get('username') == 'caytjee' %}
+        <hr style="border-color: var(--accent); opacity: 0.3; margin: 20px 0;">
+        <h2 style="font-size: 1.2em;">Danger Zone 🚨</h2>
+        <form action="/admin/clear_votes" method="POST" onsubmit="return confirm('Are you sure? This will delete ALL votes from the database!');">
+            <button type="submit" style="background-color: #ff4c4c; width: 100%; margin-top: 10px;">Reset All Votes</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div id="tab-wishlist" class="tab-content">
+    <div class="box" style="max-width: 800px; margin: 0 auto; text-align: left;">
+        <h2 style="color: var(--accent); margin-top: 0;">💡 Pending Requests</h2>
+        <table class="data-table">
+            <tr>
+                <th>User ID</th>
+                <th>Requested Game</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+            {% for req in wishlist_requests %}
+            <tr>
+                <td class="muted">{{ req.user_id }}</td>
+                <td style="font-weight: 800; color: white;">{{ req.game_name }}</td>
+                <td style="text-align: right;">
+                    <form action="/admin/delete_wishlist/{{ req.id }}" method="POST" style="display: inline;">
+                        <button type="submit" class="icon-btn" title="Delete Request">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" style="padding: 20px; text-align: center;" class="muted">No requests yet.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<script>
+    function openAdminTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        btnElement.classList.add('active');
+    }
+</script>
+{% endblock %}

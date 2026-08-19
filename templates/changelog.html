@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>🚀 System Changelog</h1>
+    <p class="page-sub">Track the latest updates to the OreTime platform.</p>
+</div>
+
+<div class="box" style="max-width: 720px; margin: 0 auto; text-align: left; padding: 28px;">
+
+    <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <h2 style="margin: 0; color: var(--accent);">v2.2.0 - The Shop &amp; Casino Update</h2>
+        <span class="muted" style="font-size: 0.9em;">Latest Release</span>
+        <ul style="margin-top: 15px; line-height: 1.8; font-size: 1.05em;">
+            <li>Added 🎰 <strong>Shop Casino</strong>: Spin the Ore Wheel with stakes of 5 / 10 / 20 / 50 / 100 / 250 / 500 OC. Rolls are server-side with ~90% RTP.</li>
+            <li>Added 🖼️ <strong>Avatar Borders</strong>: Buy and equip borders as shop cards — same layout as banners, no extra popup.</li>
+            <li>Added 👑 <strong>Founder Label</strong>: Neon Founder badge on caytjee's player card (under the stats). Forced Founder banner is gone; shop banners can be equipped.</li>
+            <li>Updated 💰 <strong>Banner Prices</strong>: Standard is FREE, Pro 50, Ultra 150, Giga 200 OC.</li>
+            <li>Added 🎮 <strong>Steam Cover Fallbacks</strong>: Game images retry across multiple CDNs when a cover fails to load.</li>
+            <li>Fixed 🌈 <strong>Banner Animations</strong>: Rainbow/GIGA loops no longer jump or rattle; Ultra gradient is smoother. Overlay "OreTime" text is centered between banner top and avatar, and isn't selectable.</li>
+            <li>Fixed 👤 <strong>Player Cards</strong>: Clicking avatars and usernames opens cards again. Missing avatars use the Discord default.</li>
+            <li>Fixed 🗳️ <strong>Voting</strong>: Empty votes no longer grant OreCoins, the MVP multiplier actually applies, and vote dates are validated.</li>
+            <li>Fixed 📊 <strong>Events Tab</strong>: Ranking chart renders correctly (it was broken while the tab was hidden). Countdown now matches the displayed Saturday.</li>
+            <li>Fixed 🛡️ <strong>Armory</strong>: The form now prefills your existing gear.</li>
+            <li>Fixed 🚨 <strong>WatchOut</strong>: Duplicate posts from the same user update instead of stacking.</li>
+            <li>Fixed 🔧 <strong>Discord Sync</strong>: No longer errors out on bad JSON.</li>
+            <li>Fixed 🧭 <strong>Navbar</strong>: Brand text is now ORETIMERS (was ORTIMERS).</li>
+        </ul>
+    </div>
+
+    <div class="timeline-item past">
+        <div class="timeline-dot"></div>
+        <h2 style="margin: 0; color: rgba(255,255,255,0.7);">v2.1.0 - The Quality of Life Update</h2>
+        <span class="muted" style="font-size: 0.9em;">Previous Release</span>
+        <ul style="margin-top: 15px; line-height: 1.8; font-size: 1.05em; opacity: 0.8;">
+            <li>Added 🎨 <strong>Unified Profile UI</strong>: The "Edit Profile" menu now perfectly mirrors the Discord-style Player Card with a live banner preview.</li>
+            <li>Added 📊 <strong>Live Stats Fetching</strong>: Opening your settings now dynamically loads your Total Votes, Top Game, and Steam Badge in real-time via Javascript.</li>
+            <li>Updated ⌨️ <strong>The Armory</strong>: Swapped 'In-Game Sens' for 'Keyboard' tracking to better reflect hardware setups.</li>
+            <li>Updated 🌑 <strong>Theme Selection</strong>: Removed 'Light Mode' and 'Matrix' to protect your eyes and keep the aesthetic consistently clean.</li>
+            <li>Implemented 🔒 <strong>Scroll-Lock Mechanics</strong>: The background website is now frozen in place whenever a popup or player card is opened to prevent scrolling glitches.</li>
+            <li>Fixed 🐛 <strong>Footer Positioning</strong>: The "made by Caytje" footer is now permanently cemented to the bottom right corner, regardless of page length.</li>
+        </ul>
+    </div>
+
+    <div class="timeline-item past" style="margin-bottom: 0;">
+        <div class="timeline-dot"></div>
+        <h2 style="margin: 0; color: rgba(255,255,255,0.7);">v2.0.0 - The Hub &amp; Community Update</h2>
+        <span class="muted" style="font-size: 0.9em;">Previous Release</span>
+        <ul style="margin-top: 15px; line-height: 1.8; font-size: 1.05em; opacity: 0.8;">
+            <li>Added 📡 <strong>Deployment Radar</strong> on the home page and events tab to track weekend availability (IN / MAYBE / OUT).</li>
+            <li>Added 👤 <strong>Interactive Player Cards</strong>: Click any username anywhere to launch a Discord-style profile popup with custom banners, avatars, stats, and live Steam info.</li>
+            <li>Added 🖥️ <strong>The Armory &amp; Gear Update</strong>: Track PC hardware including CPU, GPU, Mouse, and Keyboard configurations.</li>
+            <li>Added 🎨 <strong>Custom Profile Banners</strong>: Personalize profile cards with live color pickers and live previews.</li>
+            <li>Added 🚨 <strong>WatchOut</strong>: Real-time LFG (Looking for Group) system with automated Discord Webhook pings.</li>
+            <li>Added 🏆 <strong>Hall of Fame</strong> &amp; <strong>Podium UI</strong>: Global all-time game statistics and MVP voter tracking.</li>
+            <li>Added 🎲 <strong>Roulette</strong> to randomly select games when undecided.</li>
+            <li>Added 💡 <strong>Wishlist</strong> for users to suggest new games to admins.</li>
+            <li>Added 💻 <strong>Live Code Tracker</strong>: Automatic Lines of Code (LOC) counter cemented in the bottom right footer.</li>
+            <li>Added 🛠️ <strong>System Status</strong> page with live database metrics and terminal.</li>
+            <li>Implemented 🥷 <strong>Stealth Actions</strong>: Smooth background deletions and tab navigations without annoying popups.</li>
+            <li>Introduced dynamic Javascript dropdown lockout to prevent duplicate game votes and added celebratory confetti effects.</li>
+            <li>Some game images aren't loading because <strong>Steam is dumb</strong>.</li>
+        </ul>
+    </div>
+
+</div>
+{% endblock %}

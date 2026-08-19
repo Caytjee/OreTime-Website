@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Custom Error Modal für den Shop -->
+<div id="shop-error-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="box" style="position: relative; width: 90%; max-width: 350px; text-align: center; border: 2px solid #ff4c4c; box-shadow: 0 0 20px rgba(255,76,76,0.3);">
+        <h2 style="color: #ff4c4c; margin-top: 0;">❌ Error</h2>
+        <p id="shop-error-message" style="font-size: 1.1em; color: white; margin-bottom: 20px;">Not enough OC</p>
+        <button onclick="document.getElementById('shop-error-modal').style.display='none'" style="width: 100%; background: #ff4c4c; color: white;">OK</button>
+    </div>
+</div>
+
+<style>
+    .avatar-preview { 
+        width: 80px !important; 
+        height: 80px !important; 
+        border-radius: 50% !important; 
+        object-fit: cover !important; 
+        background: #111; 
+        display: block; 
+    }
+    
+    .shop-banner-preview { 
+        width: 100%; 
+        height: 60px; 
+        border-radius: 8px; 
+        margin-bottom: 10px; 
+        position: relative; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        overflow: hidden; 
+        border: 1px solid rgba(255,255,255,0.1); 
+    }
+    .shop-border-preview {
+        width: 100%;
+        height: 110px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: visible;
+    }
+    .sb-text { 
+        position: absolute; 
+        width: 100%; 
+        top: 50%; 
+        transform: translateY(-50%); 
+        text-align: center; 
+        pointer-events: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    .casino-stake-btn {
+        background: rgba(0,0,0,0.5);
+        border: 2px solid rgba(255,215,0,0.35);
+        color: #FFD700;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 800;
+        cursor: pointer;
+        min-width: 72px;
+        margin-top: 0;
+        transition: 0.2s;
+    }
+    .casino-stake-btn:hover { border-color: #FFD700; transform: translateY(-2px); background: rgba(0,0,0,0.5); color: #FFD700; }
+    .casino-stake-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .casino-stake-btn.active {
+        background: #FFD700;
+        color: #111;
+        box-shadow: 0 0 16px rgba(255,215,0,0.45);
+    }
+    .casino-stake-btn.active:hover { background: #FFD700; color: #111; }
+    .casino-odds { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+    .casino-odds th, .casino-odds td { padding: 8px 12px; border-bottom: 1px solid rgba(255,215,0,0.15); }
+    .casino-odds th { color: #FFD700; text-align: left; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ore-wheel-wrap { position: relative; width: 240px; height: 240px; margin: 0 auto 20px; }
+    .ore-wheel-pointer { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); color: #FFD700; font-size: 1.6em; z-index: 2; text-shadow: 0 0 10px rgba(255,215,0,0.8); }
+    .ore-wheel {
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        border: 6px solid #FFD700;
+        background: conic-gradient(
+            #5a1010 0deg 72deg,
+            #4a4a4a 72deg 144deg,
+            #b8860b 144deg 216deg,
+            #c45c12 216deg 288deg,
+            #2e7d32 288deg 360deg
+        );
+        box-shadow: 0 0 30px rgba(255,215,0,0.25), inset 0 0 40px rgba(0,0,0,0.45);
+        transition: transform 2.4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    }
+    .ore-wheel-hub {
+        position: absolute;
+        inset: 50%;
+        width: 72px;
+        height: 72px;
+        margin: -36px 0 0 -36px;
+        border-radius: 50%;
+        background: #111;
+        border: 3px solid #FFD700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        color: #FFD700;
+        z-index: 1;
+        box-shadow: 0 0 16px rgba(0,0,0,0.6);
+    }
+    .casino-spin-btn {
+        width: 100%;
+        background: #FFD700;
+        color: #111;
+        font-weight: 900;
+        font-size: 1.15em;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(255,215,0,0.35);
+        transition: 0.2s;
+    }
+    .casino-spin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(255,215,0,0.45); background: #FFD700; color: #111; }
+    .casino-spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    #casino-result { display: none; margin-top: 18px; padding: 16px; border-radius: 10px; text-align: center; }
+    #casino-result.lose { border: 2px solid #ff4c4c; background: rgba(255,76,76,0.08); }
+    #casino-result.push { border: 2px solid #9aa0a6; background: rgba(154,160,166,0.08); }
+    #casino-result.win { border: 2px solid #FFD700; background: rgba(255,215,0,0.08); box-shadow: 0 0 18px rgba(255,215,0,0.2); }
+</style>
+
+<div class="shop-hero">
+    <h1>🛒 The Black Market</h1>
+    <div class="balance-chip">
+        <span style="opacity: 0.8; font-weight: bold; text-transform: uppercase; font-size: 0.8em;">Your Balance:</span>
+        <span style="color: #FFD700; font-size: 1.5em; font-weight: 900;" id="user-balance-display">{{ coins }}</span><span style="color: #FFD700; font-size: 1.0em; font-weight: 900;"> OC</span>
+    </div>
+</div>
+
+<div class="tab-container tabs-gold">
+    <button class="tab-btn active" type="button" onclick="openShopTab('tab-market', this)">🛒 Market</button>
+    <button class="tab-btn" type="button" onclick="openShopTab('tab-casino', this)">🎰 Casino</button>
+</div>
+
+<div id="tab-market" class="tab-content active">
+<p class="page-sub" style="margin-bottom: 32px; text-align: left;">Spend your OreCoins on exclusive profile cosmetics and platform perks. You earn <strong style="color: #FFD700;">10 OC</strong> every time you vote for the first time on a weekend event!</p>
+
+<h2 class="section-title">Profile Upgrades</h2>
+<div class="card-grid" style="margin-bottom: 36px;">
+    
+    <div class="box" style="text-align: center; border-top: 4px solid var(--accent); position: relative; overflow: hidden;">
+        <h3 style="margin-top: 0; color: white;">🌟 MVP Multiplier</h3>
+        <p style="font-size: 0.9em; opacity: 0.7; height: 40px;">Your next weekend vote counts as 2 votes.</p>
+        <div style="font-size: 1.8em; font-weight: 900; color: #FFD700; margin: 15px 0;">100 OC</div>
+        <button id="btn-mvp" onclick="buyItem('mvp', 'btn-mvp')" style="width: 100%; background: var(--accent); color: white; cursor: pointer; transition: 0.2s; font-weight: bold;">Buy Perk</button>
+    </div>
+
+    <div class="box" style="text-align: center; border-top: 4px solid #ff4c4c; position: relative; overflow: hidden;">
+        <h3 style="margin-top: 0; color: white;">🔥 Custom Title</h3>
+        <p style="font-size: 0.9em; opacity: 0.7; height: 40px;">Add a custom text sub-title to your Player Card.</p>
+        <div style="font-size: 1.8em; font-weight: 900; color: #FFD700; margin: 15px 0;">50 OC</div>
+        <button id="btn-title" onclick="buyItem('title', 'btn-title')" style="width: 100%; background: #ff4c4c; color: white; cursor: pointer; transition: 0.2s; font-weight: bold;">Buy Title</button>
+    </div>
+
+</div>
+
+<h2 class="section-title">Avatar Borders</h2>
+<div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 36px;">
+
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-border-preview">
+            <img src="{{ user_avatar }}" class="avatar-preview border-hacker">
+        </div>
+        <h3 style="margin: 0 0 5px 0; color: #3fb950;">Hacker</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">Green flicker glow around your avatar.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">50 OC</div>
+        <button id="btn-hacker" onclick="buyItem('hacker', 'btn-hacker')" style="width: 100%; font-size: 0.9em; background: #238636; color: white;">Buy/Equip</button>
+    </div>
+
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-border-preview">
+            <img src="{{ user_avatar }}" class="avatar-preview border-gold">
+        </div>
+        <h3 style="margin: 0 0 5px 0; color: #FFD700;">Gold</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">Animated gold pulse for your avatar.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">100 OC</div>
+        <button id="btn-gold" onclick="buyItem('gold', 'btn-gold')" style="width: 100%; font-size: 0.9em; background: #FFD700; color: black;">Buy/Equip</button>
+    </div>
+
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-border-preview">
+            <div class="border-cosmos-wrapper">
+                <img src="{{ user_avatar }}" class="avatar-preview" style="border: none !important;">
+            </div>
+        </div>
+        <h3 style="margin: 0 0 5px 0; color: #bb86fc;">Cosmos</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">Purple galaxy ring around your avatar.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">200 OC</div>
+        <button id="btn-cosmos" onclick="buyItem('cosmos', 'btn-cosmos')" style="width: 100%; font-size: 0.9em; background: #3700b3; color: white;">Buy/Equip</button>
+    </div>
+
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-border-preview">
+            <div class="border-giga-wrapper">
+                <img src="{{ user_avatar }}" class="avatar-preview" style="border: none !important;">
+            </div>
+        </div>
+        <h3 style="margin: 0 0 5px 0; background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 900;">GIGA</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">RGB flow ring around your avatar.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">250 OC</div>
+        <button id="btn-giga" onclick="buyItem('giga', 'btn-giga')" style="width: 100%; font-size: 0.9em; background: white; color: black; font-weight: 900;">Buy/Equip</button>
+    </div>
+
+</div>
+
+<h2 class="section-title">Custom Profile Banners</h2>
+<div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+    
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-banner-preview" style="background: #333;">
+            <span class="sb-text banner-standard-text" style="font-size: 1.2em;">OreTime</span>
+        </div>
+        <h3 style="margin: 0 0 5px 0; color: white;">OreTime Standard</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">1 Color BG. White Text.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">FREE</div>
+        <button id="btn-stand" onclick="buyItem('standard', 'btn-stand')" style="width: 100%; font-size: 0.9em;">Buy/Equip</button>
+    </div>
+
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-banner-preview" style="background: #000;">
+            <span class="sb-text banner-pro-text" style="font-size: 1.2em; color: #ff0000; filter: drop-shadow(0 0 5px #ff0000);">OreTime</span>
+        </div>
+        <h3 style="margin: 0 0 5px 0; color: white;">OreTime Pro</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">Black BG. Glowing Text Color.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">50 OC</div>
+        <button id="btn-pro" onclick="buyItem('pro', 'btn-pro')" style="width: 100%; font-size: 0.9em;">Buy/Equip</button>
+    </div>
+
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-banner-preview" style="background: linear-gradient(90deg, #ff0000 0%, #ff0000 15%, #000 50%, #0000ff 85%, #0000ff 100%);">
+            <span class="sb-text banner-ultra-text" style="font-size: 1.2em; color: #00ffff; filter: drop-shadow(0 0 5px #00ffff);">OreTime</span>
+        </div>
+        <h3 style="margin: 0 0 5px 0; color: white;">OreTime Ultra</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">3-Color BG Gradient. Glow Text.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">150 OC</div>
+        <button id="btn-ultra" onclick="buyItem('ultra', 'btn-ultra')" style="width: 100%; font-size: 0.9em;">Buy/Equip</button>
+    </div>
+
+    <div class="box" style="text-align: center; padding: 20px;">
+        <div class="shop-banner-preview giga-banner-bg" style="background-image: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f00, #ff0, #0f0, #0ff, #00f, #f00);">
+            <span class="sb-text banner-giga-text" style="font-size: 1.2em; background-image: linear-gradient(90deg, #fff, #000, #fff, #000, #fff);">OreTime</span>
+        </div>
+        <h3 style="margin: 0 0 5px 0; color: white;">OreTime Giga</h3>
+        <p style="font-size: 0.8em; opacity: 0.7; height: 35px;">5-Color Flow BG. Flowing Text.</p>
+        <div style="font-size: 1.4em; font-weight: 900; color: #FFD700; margin-bottom: 10px;">200 OC</div>
+        <button id="btn-giga-b" onclick="buyItem('giga_banner', 'btn-giga-b')" style="width: 100%; font-size: 0.9em;">Buy/Equip</button>
+    </div>
+
+</div>
+</div>
+
+<div id="tab-casino" class="tab-content">
+    <div class="box" style="max-width: 720px; margin: 0 auto; text-align: center; border-top: 4px solid #FFD700;">
+        <h2 style="margin-top: 0; color: #FFD700;">🎰 Ore Wheel</h2>
+        <p style="opacity: 0.8; margin-bottom: 24px;">Pick a stake and spin. Payouts include your stake on 1x and up. The house keeps a mild edge.</p>
+
+        <div style="margin-bottom: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8em; opacity: 0.75; letter-spacing: 0.04em;">Stake (OC)</div>
+        <div id="casino-stakes" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 28px;">
+            <button type="button" class="casino-stake-btn" data-stake="5" onclick="selectCasinoStake(5)">5</button>
+            <button type="button" class="casino-stake-btn active" data-stake="10" onclick="selectCasinoStake(10)">10</button>
+            <button type="button" class="casino-stake-btn" data-stake="20" onclick="selectCasinoStake(20)">20</button>
+            <button type="button" class="casino-stake-btn" data-stake="50" onclick="selectCasinoStake(50)">50</button>
+            <button type="button" class="casino-stake-btn" data-stake="100" onclick="selectCasinoStake(100)">100</button>
+            <button type="button" class="casino-stake-btn" data-stake="250" onclick="selectCasinoStake(250)">250</button>
+            <button type="button" class="casino-stake-btn" data-stake="500" onclick="selectCasinoStake(500)">500</button>
+        </div>
+
+        <div class="ore-wheel-wrap">
+            <div class="ore-wheel-pointer">▼</div>
+            <div id="ore-wheel" class="ore-wheel"></div>
+            <div id="ore-wheel-hub" class="ore-wheel-hub">OC</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 22px; font-size: 0.8em; font-weight: bold;">
+            <span style="color: #ff8a80;">■ Lose</span>
+            <span style="color: #cfcfcf;">■ 1x</span>
+            <span style="color: #FFD700;">■ 2x</span>
+            <span style="color: #ff9800;">■ 3x</span>
+            <span style="color: #81c784;">■ 5x</span>
+        </div>
+
+        <button type="button" id="casino-spin-btn" class="casino-spin-btn" onclick="playCasino()">SPIN THE ORE WHEEL</button>
+
+        <div id="casino-result">
+            <div id="casino-result-mult" style="font-size: 2em; font-weight: 900; color: #FFD700; margin-bottom: 6px;"></div>
+            <div id="casino-result-msg" style="font-size: 1.05em;"></div>
+        </div>
+
+        <h3 style="text-align: left; color: white; border-bottom: 1px solid rgba(255,215,0,0.35); padding-bottom: 8px; margin-top: 32px;">Odds</h3>
+        <table class="casino-odds">
+            <thead>
+                <tr><th>Outcome</th><th>Chance</th><th>Payout</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Lose</td><td>48%</td><td>0x — stake gone</td></tr>
+                <tr><td>Push</td><td>27%</td><td>1x — stake back</td></tr>
+                <tr><td>Win</td><td>16%</td><td>2x</td></tr>
+                <tr><td>Nice win</td><td>7%</td><td>3x</td></tr>
+                <tr><td>Jackpot</td><td>2%</td><td>5x</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size: 0.8em; opacity: 0.55; margin: 12px 0 0; text-align: left;">Expected return ~90% of your stake over time. Spins are decided on the server.</p>
+    </div>
+</div>
+
+<!-- TITLE SET UP MODAL -->
+<div id="title-setup-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 999999; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+    <div class="box" style="position: relative; width: 90%; max-width: 400px; text-align: center; border: 2px solid #ff4c4c; box-shadow: 0 0 20px rgba(255,76,76,0.3);">
+        <h2 style="color: #ff4c4c; margin-top: 0;">🔥 Title Unlocked!</h2>
+        <p style="opacity: 0.8; margin-bottom: 20px;">Enter your new custom subtitle below.<br><span style="font-size: 0.8em; opacity: 0.6;">(Note: This option is now unlocked and can be changed anytime in your Profile Settings!)</span></p>
+        
+        <form action="/profile" method="POST">
+            <input type="text" name="custom_title" placeholder="e.g. The Clutch Master" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ff4c4c; background: rgba(0,0,0,0.5); color: #ff4c4c; font-weight: bold; text-align: center;" required>
+            <button type="submit" style="width: 100%; background: #ff4c4c; color: white;">Save & Equip</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function buyItem(item, btnId) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        const originalText = btn.innerText;
+        btn.innerText = "Processing...";
+        btn.style.opacity = "0.5";
+
+        fetch('/api/buy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item: item })
+        })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })).catch(() => ({ ok: false, data: { error: 'Purchase failed' } })))
+        .then(({ ok, data }) => {
+            if (ok && data.success) {
+                document.getElementById('user-balance-display').innerText = data.new_balance;
+                
+                if (item === 'title') {
+                    document.body.style.overflow = 'hidden';
+                    document.getElementById('title-setup-modal').style.display = 'flex';
+                }
+                
+                btn.innerText = data.message ? data.message : "Equipped";
+                btn.style.background = "#238636";
+                btn.style.color = "white";
+                btn.style.opacity = "1";
+            } else {
+                document.getElementById('shop-error-message').innerText = data.error || "Purchase failed";
+                document.getElementById('shop-error-modal').style.display = 'flex';
+                btn.innerText = originalText;
+                btn.style.opacity = "1";
+            }
+        })
+        .catch(() => {
+            document.getElementById('shop-error-message').innerText = "Could not reach the shop. Try again.";
+            document.getElementById('shop-error-modal').style.display = 'flex';
+            btn.innerText = originalText;
+            btn.style.opacity = "1";
+        });
+    }
+
+    function openShopTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btnElement.classList.add('active');
+    }
+
+    const CASINO_STAKES = [5, 10, 20, 50, 100, 250, 500];
+    const CASINO_SEGMENTS = { 0: 0, 1: 1, 2: 2, 3: 3, 5: 4 };
+    let selectedCasinoStake = 10;
+    let casinoBusy = false;
+    let casinoSpinTurns = 0;
+
+    function selectCasinoStake(stake) {
+        if (casinoBusy || CASINO_STAKES.indexOf(stake) === -1) return;
+        selectedCasinoStake = stake;
+        document.querySelectorAll('.casino-stake-btn').forEach(btn => {
+            btn.classList.toggle('active', Number(btn.getAttribute('data-stake')) === stake);
+        });
+    }
+
+    function playCasino() {
+        if (casinoBusy) return;
+        if (CASINO_STAKES.indexOf(selectedCasinoStake) === -1) return;
+
+        const spinBtn = document.getElementById('casino-spin-btn');
+        const resultBox = document.getElementById('casino-result');
+        const wheel = document.getElementById('ore-wheel');
+        const hub = document.getElementById('ore-wheel-hub');
+        casinoBusy = true;
+        spinBtn.disabled = true;
+        spinBtn.innerText = 'SPINNING...';
+        document.querySelectorAll('.casino-stake-btn').forEach(btn => { btn.disabled = true; });
+        hub.innerText = '?';
+        resultBox.style.display = 'none';
+        resultBox.className = '';
+
+        fetch('/api/casino/play', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stake: selectedCasinoStake })
+        })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })).catch(() => ({ ok: false, data: { error: 'Casino failed' } })))
+        .then(({ ok, data }) => {
+            if (!ok || !data.success) {
+                document.getElementById('shop-error-message').innerText = data.error || 'Casino failed';
+                document.getElementById('shop-error-modal').style.display = 'flex';
+                hub.innerText = 'OC';
+                resetCasinoSpin();
+                return;
+            }
+
+            const segment = CASINO_SEGMENTS.hasOwnProperty(data.multiplier) ? CASINO_SEGMENTS[data.multiplier] : 0;
+            casinoSpinTurns += 4;
+            const targetDeg = casinoSpinTurns * 360 + (360 - (segment * 72 + 36));
+            wheel.style.transform = 'rotate(' + targetDeg + 'deg)';
+
+            window.setTimeout(function () {
+                document.getElementById('user-balance-display').innerText = data.new_balance;
+                hub.innerText = data.multiplier === 0 ? '0x' : (data.multiplier + 'x');
+                resultBox.className = data.result;
+                document.getElementById('casino-result-mult').innerText = data.multiplier === 0 ? 'BUST' : (data.multiplier + 'x');
+                document.getElementById('casino-result-msg').innerText = data.message || '';
+                resultBox.style.display = 'block';
+
+                if (data.result === 'win' && typeof confetti === 'function') {
+                    const burst = data.multiplier >= 5 ? 220 : (data.multiplier >= 3 ? 160 : 110);
+                    confetti({ particleCount: burst, spread: 80, origin: { y: 0.6 }, zIndex: 999999 });
+                }
+                resetCasinoSpin();
+            }, 2400);
+        })
+        .catch(() => {
+            document.getElementById('shop-error-message').innerText = 'Could not reach the casino. Try again.';
+            document.getElementById('shop-error-modal').style.display = 'flex';
+            hub.innerText = 'OC';
+            resetCasinoSpin();
+        });
+    }
+
+    function resetCasinoSpin() {
+        casinoBusy = false;
+        const spinBtn = document.getElementById('casino-spin-btn');
+        spinBtn.disabled = false;
+        spinBtn.innerText = 'SPIN THE ORE WHEEL';
+        document.querySelectorAll('.casino-stake-btn').forEach(btn => { btn.disabled = false; });
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1 style="color: #ff4c4c; text-shadow: 0 0 15px rgba(255,76,76,0.8);">🚨 The Beacon</h1>
+    <p class="page-sub">Light the beacon to show others you want to play right now!</p>
+</div>
+
+<div class="box" style="max-width: 500px; margin: 0 auto 36px auto; border: 2px solid #ff4c4c; box-shadow: 0 0 20px rgba(255,76,76,0.2);">
+    <form method="POST" class="form-stack">
+        <label class="form-label" style="color: var(--text-main);">What do you want to play?</label>
+        <select name="game" style="border: 1px solid #ff4c4c;" required>
+            <option value="">-- Choose a Game --</option>
+            {% for game in games %}
+                <option value="{{ game }}">{{ game }}</option>
+            {% endfor %}
+            <option value="Something Else">Something Else</option>
+        </select>
+        <button type="submit" class="btn-full" style="background: #ff4c4c; color: white;">🔥 LIGHT THE BEACON</button>
+    </form>
+</div>
+
+<div style="display: flex; justify-content: center; gap: 18px; flex-wrap: wrap;">
+{% for b in active_beacons %}
+    <div class="box watchout-card">
+        <div style="position: absolute; top: -10px; right: -10px; font-size: 4em; opacity: 0.1; pointer-events: none;">🚨</div>
+
+        <strong style="color: #ff4c4c; font-size: 1.25em; display: block;">
+            <span onclick='openPlayerCard({{ b.username | tojson }})' style="cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#ff4c4c'">{{ b.username }}</span>
+        </strong>
+
+        <span class="muted" style="font-size: 0.9em;">is looking for players in:</span>
+        <h3 style="margin: 6px 0 0 0; color: white;">{{ b.game }}</h3>
+
+        {% if session.get('username') == b.username %}
+        <form action="/delete_watchout/{{ b.id }}" method="POST" style="position: absolute; top: 15px; right: 15px; z-index: 10;">
+            <button type="submit" class="icon-btn" style="color: white;" data-tooltip="Close WatchOut">✖️</button>
+        </form>
+        {% endif %}
+    </div>
+    {% else %}
+    <p class="muted" style="font-style: italic;">The beacons are quiet... for now.</p>
+{% endfor %}
+</div>
+{% endblock %}

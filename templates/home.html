@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="box welcome-bar">
+    <div class="welcome-meta">
+        <img src="{{ user_avatar }}" alt="Avatar">
+        <div>
+            <h1>Welcome to ORETIME Gaming 🎮</h1>
+            <p class="page-sub" style="margin-top: 6px;">Welcome back, {{ session.get('username', 'Gamer') }}! Ready for Saturday?</p>
+        </div>
+    </div>
+    <div>
+        <a href="{{ url_for('events') }}"><button style="margin: 0;">Vote Now 🗳️</button></a>
+    </div>
+</div>
+
+<div class="card-grid">
+    <div class="box" style="margin: 0; text-align: left;">
+        <h2 style="margin-top: 0; font-size: 1.25em;">📅 Next Session</h2>
+        <p style="font-size: 1.15em; font-weight: 800; margin: 12px 0;">Saturday, {{ next_sat }}</p>
+        <div class="countdown-chip">
+            ⏳ <span id="countdown-timer">Calculating countdown...</span>
+        </div>
+        <p class="muted" style="font-size: 0.95em;">Pick your top 3 games for this weekend's power ranking!</p>
+    </div>
+
+    <div class="box" style="margin: 0; text-align: left; border-left: 5px solid var(--accent);">
+        <h2 style="margin-top: 0; font-size: 1.25em;">🔥 Game of the Week</h2>
+        <div style="background: var(--input-bg); padding: 14px; border-radius: 10px; margin: 14px 0; text-align: center;">
+            {% set appid = game_appids.get(winner, 'non') %}
+            {% if appid != 'non' and winner != 'TBD (No votes yet)' %}
+                <img src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{{ appid }}/header.jpg" alt="{{ winner }}" data-appid="{{ appid }}" data-name="{{ winner }}" onerror="steamImgFallback(this)" style="width: 100%; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--accent);">
+            {% endif %}
+            <span style="font-size: 1.3em; font-weight: 800; color: var(--accent);">{{ winner }}</span>
+        </div>
+        <p class="muted" style="font-size: 0.9em;">The reigning winning game or current favorite for our next round.</p>
+    </div>
+
+    <div class="box" style="margin: 0; text-align: left;">
+        <h2 style="margin-top: 0; font-size: 1.25em;">🏆 Quick History</h2>
+        <ul style="list-style: none; padding: 0; margin: 14px 0 0 0;">
+            <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Last Saturday:</strong> 🎮 {{ last_winner }}</li>
+        </ul>
+        <a href="/history"><button class="btn-ghost btn-full">Full Archive 📜</button></a>
+    </div>
+</div>
+
+<div class="box" style="margin: 28px auto; padding: 24px; max-width: 800px; text-align: center;">
+    <h2 style="margin-top: 0; font-size: 1.4em;">📡 The Radar <span class="muted" style="font-size: 0.6em;">{{ next_sat }}</span></h2>
+    <p class="muted" style="margin-bottom: 20px;">Are you deploying this Saturday?</p>
+
+    <form action="{{ url_for('set_radar') }}" method="POST" style="display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+        <button type="submit" name="status" value="yes" class="radar-btn btn-yes {% if user_status == 'yes' %}active{% endif %}">🟢 IN</button>
+        <button type="submit" name="status" value="maybe" class="radar-btn btn-maybe {% if user_status == 'maybe' %}active{% endif %}">🟡 MAYBE</button>
+        <button type="submit" name="status" value="no" class="radar-btn btn-no {% if user_status == 'no' %}active{% endif %}">🔴 OUT</button>
+    </form>
+
+    <div class="radar-avatars">
+        {% for u in radar_data['yes'] %}
+            <img src="{{ u.avatar or default_avatar }}" onclick='openPlayerCard({{ u.username | tojson }})' data-tooltip="{{ u.username }} (IN)" style="border: 2px solid #4CAF50;">
+        {% endfor %}
+
+        {% for u in radar_data['maybe'] %}
+            <img src="{{ u.avatar or default_avatar }}" onclick='openPlayerCard({{ u.username | tojson }})' data-tooltip="{{ u.username }} (MAYBE)" style="border: 2px solid #FFC107; opacity: 0.8;">
+        {% endfor %}
+
+        {% for u in radar_data['no'] %}
+            <img src="{{ u.avatar or default_avatar }}" onclick='openPlayerCard({{ u.username | tojson }})' data-tooltip="{{ u.username }} (OUT)" style="border: 2px solid #F44336; opacity: 0.4; filter: grayscale(100%);">
+        {% endfor %}
+    </div>
+</div>
+
+{% if active_beacons %}
+<div class="box" style="margin: 36px auto 0 auto; max-width: 800px; text-align: center; border: 2px solid #ff4c4c; box-shadow: 0 0 20px rgba(255,76,76,0.2);">
+    <h2 style="color: #ff4c4c; margin-top: 0; font-size: 1.7em;">🚨 Active WatchOuts</h2>
+    <p class="muted" style="margin-bottom: 20px; font-size: 1.05em;">These players are looking for a group right now!</p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; justify-content: center;">
+        {% for b in active_beacons %}
+        <div class="watchout-card" style="flex: 1; min-width: 250px; max-width: 350px; width: auto;">
+
+            <strong style="color: #ff4c4c; font-size: 1.25em; display: block; margin-bottom: 5px;">
+                <span onclick='openPlayerCard({{ b.username | tojson }})' style="cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#ff4c4c'">{{ b.username }}</span>
+            </strong>
+
+            <span class="muted" style="font-size: 0.95em;">is looking for players in:</span>
+            <div style="color: white; font-weight: 800; font-size: 1.15em; margin-top: 6px;">{{ b.game }}</div>
+
+            {% if session.get('username') == b.username %}
+            <form action="/delete_watchout/{{ b.id }}" method="POST" style="position: absolute; top: 15px; right: 15px;">
+                <button type="submit" class="icon-btn" data-tooltip="Close WatchOut">✖️</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="/watchout"><button style="margin-top: 24px; background: #ff4c4c; color: white; border: none; font-weight: 800; padding: 12px 25px;">Go to WatchOut 🚨</button></a>
+</div>
+{% endif %}
+
+<script>
+function updateCountdown() {
+    const now = new Date();
+    const resultDate = new Date("{{ next_sat }}T20:00:00");
+
+    const diff = resultDate - now;
+    if (diff <= 0) { document.getElementById("countdown-timer").innerHTML = "Session is live!"; return; }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById("countdown-timer").innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+}
+setInterval(updateCountdown, 1000); updateCountdown();
+</script>
+
+<div class="home-credit">
+    <div>
+        <span style="font-size: 1.05em; font-weight: 800; color: white;">OreTime Gaming Platform</span>
+        <div class="muted" style="font-size: 0.85em; margin-top: 3px;">Created by <span style="color: var(--accent); font-weight: 800;">Caytjee</span> &amp; <span style="color: var(--accent); font-weight: 800;">Torotera</span></div>
+    </div>
+
+    <div class="loc-chip">
+        <span class="muted" style="font-size: 0.9em;">Total Lines of Code:</span>
+        <strong style="color: #3fb950; font-size: 1.2em; margin-left: 5px;">{{ total_loc }}</strong>
+    </div>
+</div>
+
+{% endblock %}
