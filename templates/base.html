@@ -430,7 +430,7 @@
                 <a href="#" id="open-steam-modal">👤 Edit Profile</a>
                 <a href="#" id="open-credits-modal">🎬 Credits</a>
 
-                {% if session.get('username') in ['caytjee', 'torotera', 'schmelive'] %}
+                {% if session.get('username', '').lower() in admins_lower %}
                 <hr>
                 <a href="/admin">⚙️ Admin Panel</a>
                 {% endif %}
@@ -564,19 +564,19 @@
             <ul style="list-style: none; padding: 0; text-align: left; margin-top: 20px;">
                 <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <strong style="color: var(--accent);">🛠️ Main Developer:</strong><br>
-                    Caytje & Tony
+                    {{ site_author }}{% if site_co_author %} & {{ site_co_author }}{% endif %}
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <strong style="color: var(--accent);">💻 Website Code:</strong><br>
-                    Written by Caytje
+                    Written by {{ site_author }}
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <strong style="color: var(--accent);">🎨 UI & UX Design:</strong><br>
-                    Made by Caytje
+                    Made by {{ site_author }}
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <strong style="color: var(--accent);">🖥️ DC Server Hosting:</strong><br>
-                    Hosted by Elive
+                    Hosted by {{ site_host }}
                 </li>
                 <li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <strong style="color: var(--accent);">🎮 Organization:</strong><br>
@@ -620,7 +620,7 @@
     </div>
 
     <div class="footer-right">
-        made by Caytje<br>
+        made by {{ site_author }}<br>
         <span style="font-size: 0.75em; opacity: 0.8;">version 2.2.0</span>
     </div>
 
@@ -899,7 +899,7 @@ function openPlayerCard(username) {
                     document.getElementById('pc-steam-btn').style.display = 'none';
                 }
 
-                const isFounder = data.username && data.username.toLowerCase() === 'caytjee';
+                const isFounder = !!data.is_founder;
                 if (founderLabel) founderLabel.style.display = isFounder ? 'block' : 'none';
                 card.classList.toggle('has-founder', isFounder);
             } catch (e) {}

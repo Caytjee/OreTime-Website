@@ -8,20 +8,63 @@ import time
 import secrets
 from datetime import date, datetime, timedelta
 
+def _load_dotenv(path='.env'):
+    try:
+        with open(path, encoding='utf-8') as f:
+            for raw in f:
+                line = raw.strip()
+                if not line or line.startswith('#') or '=' not in line:
+                    continue
+                key, _, val = line.partition('=')
+                key = key.strip()
+                val = val.strip()
+                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+                    val = val[1:-1]
+                os.environ.setdefault(key, val)
+    except FileNotFoundError:
+        pass
+
+def _require_env(name):
+    val = (os.environ.get(name) or '').strip()
+    if not val:
+        raise RuntimeError(
+            f"Missing required environment variable: {name}. Copy .env.example to .env and fill in the values."
+        )
+    return val
+
+_load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = "gaming_saturday_secret"
+app.secret_key = _require_env('SECRET_KEY')
 app.permanent_session_lifetime = timedelta(days=30)
 
-ADMINS = ['caytjee', 'torotera', 'schmelive']
+ADMINS = [x.strip() for x in os.environ.get('ADMINS', '').split(',') if x.strip()]
+ADMINS_LOWER = [a.lower() for a in ADMINS]
+FOUNDER_USERNAME = os.environ.get('FOUNDER_USERNAME', '').strip().lower()
+DEVELOPER_USERNAME = os.environ.get('DEVELOPER_USERNAME', '').strip().lower()
+HOST_USERNAME = os.environ.get('HOST_USERNAME', '').strip().lower()
+SITE_AUTHOR = os.environ.get('SITE_AUTHOR', '').strip()
+SITE_CO_AUTHOR = os.environ.get('SITE_CO_AUTHOR', '').strip()
+SITE_HOST = os.environ.get('SITE_HOST', '').strip()
+HOME_CREATOR_A = os.environ.get('HOME_CREATOR_A', '').strip()
+HOME_CREATOR_B = os.environ.get('HOME_CREATOR_B', '').strip()
+
+def is_admin(username):
+    return (username or '').lower() in ADMINS_LOWER
+
+def is_founder(username):
+    return bool(FOUNDER_USERNAME) and (username or '').lower() == FOUNDER_USERNAME
+
 _loc_cache = {'count': None, 'ts': 0}
 _steam_cache = {'ts': 0, 'owned': {}, 'no_steam': []}
 _started_at = time.time()
 STEAM_CACHE_TTL = 300
 
-STEAM_API_KEY = "2CDCC53DD6417C157A68B43C3C5C7B9B"
-DISCORD_CLIENT_ID = "1538330044353617930"
-DISCORD_CLIENT_SECRET = "ShZs293iRCqjRsqtBCdS8tre7fpil1Sj"
-DISCORD_REDIRECT_URI = "http://localhost:5000/callback"
+STEAM_API_KEY = _require_env('STEAM_API_KEY')
+DISCORD_CLIENT_ID = _require_env('DISCORD_CLIENT_ID')
+DISCORD_CLIENT_SECRET = _require_env('DISCORD_CLIENT_SECRET')
+DISCORD_REDIRECT_URI = (os.environ.get('DISCORD_REDIRECT_URI') or '').strip() or 'http://localhost:5000/callback'
+DISCORD_WEBHOOK_URL = (os.environ.get('DISCORD_WEBHOOK_URL') or '').strip()
 
 DISCORD_AUTH_URL = "https://discord.com/oauth2/authorize"
 DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
@@ -167,7 +210,23 @@ def inject_global_data():
                 avatar = safe_avatar(user['avatar'] if 'avatar' in user.keys() else None)
                 session.update({'theme': theme, 'steam_id': steam_id, 'avatar': avatar})
     conn.close()
-    return {'current_theme': theme, 'user_steam_id': steam_id, 'user_avatar': avatar or DEFAULT_AVATAR, 'game_appids': game_appids, 'voting_locked': voting_locked, 'total_loc': get_total_loc(), 'default_avatar': DEFAULT_AVATAR}
+    return {
+        'current_theme': theme,
+        'user_steam_id': steam_id,
+        'user_avatar': avatar or DEFAULT_AVATAR,
+        'game_appids': game_appids,
+        'voting_locked': voting_locked,
+        'total_loc': get_total_loc(),
+        'default_avatar': DEFAULT_AVATAR,
+        'admins': ADMINS,
+        'admins_lower': ADMINS_LOWER,
+        'founder_username': FOUNDER_USERNAME,
+        'site_author': SITE_AUTHOR,
+        'site_co_author': SITE_CO_AUTHOR,
+        'site_host': SITE_HOST,
+        'home_creator_a': HOME_CREATOR_A,
+        'home_creator_b': HOME_CREATOR_B,
+    }
 
 def get_next_two_saturdays():
     today = date.today()
@@ -393,7 +452,7 @@ def api_player(username):
             
     # INFINITE COINS HACK FÜR FOUNDER (in API)
     display_coins = user['ore_coins'] or 0
-    if (user['username'] or '').lower() == 'caytjee': 
+    if is_founder(user['username']):
         display_coins = 999999
             
     conn.close()
@@ -416,7 +475,8 @@ def api_player(username):
         'owned_banners': user['owned_banners'] or '',
         'active_banner': user['active_banner'] or 'default',
         'banner_config': user['banner_config'] or '{}',
-        'banner': user['banner'] or '#1a1a1a'
+        'banner': user['banner'] or '#1a1a1a',
+        'is_founder': is_founder(user['username']),
     })
 
 @app.route('/events')
@@ -539,9 +599,13 @@ def oretimers():
     for u in users:
         vote_count = conn.execute("SELECT COUNT(*) FROM votes WHERE user_id = ?", (u['id'],)).fetchone()[0]
         badges = []
-        if u['username'] == 'caytjee': badges.append({'icon': '👑', 'title': 'Founder & Admin'})
-        elif u['username'] == 'torotera': badges.append({'icon': '💻', 'title': 'Developer & Admin'})
-        elif u['username'] == 'schmelive': badges.append({'icon': '🖥️', 'title': 'Server Host & Admin'})
+        uname = (u['username'] or '').lower()
+        if FOUNDER_USERNAME and uname == FOUNDER_USERNAME:
+            badges.append({'icon': '👑', 'title': 'Founder & Admin'})
+        elif DEVELOPER_USERNAME and uname == DEVELOPER_USERNAME:
+            badges.append({'icon': '💻', 'title': 'Developer & Admin'})
+        elif HOST_USERNAME and uname == HOST_USERNAME:
+            badges.append({'icon': '🖥️', 'title': 'Server Host & Admin'})
 
         if u['steam_id']: badges.append({'icon': '🎮', 'title': 'Steam Connected'})
         if vote_count >= 5: badges.append({'icon': '🔥', 'title': 'Veteran Voter'})
@@ -576,7 +640,7 @@ def shop():
     conn = get_db()
     
     # INFINITE COINS HACK FÜR FOUNDER (in Shop Ansicht)
-    if session.get('username', '').lower() == 'caytjee':
+    if is_founder(session.get('username')):
         conn.execute("UPDATE users SET ore_coins = 999999 WHERE id = ?", (session['user_id'],))
         conn.commit()
 
@@ -787,12 +851,12 @@ def watchout():
                 conn.execute("INSERT INTO beacons (username, game) VALUES (?, ?)", (username, game))
             conn.commit()
             
-            webhook_url = "https://discord.com/api/webhooks/1538971342521765969/-kerPddnA1qS-sD5gPCTNiGr7TpUMEUGeCDX5FB_1z0DDCAEH5jEInwYuE8wOhuzkI6v"
-            try:
-                payload = {"content": f"🚨 **{username}** is looking for teammates for **{game}**!"}
-                requests.post(webhook_url, json=payload, timeout=2)
-            except Exception:
-                pass 
+            if DISCORD_WEBHOOK_URL:
+                try:
+                    payload = {"content": f"🚨 **{username}** is looking for teammates for **{game}**!"}
+                    requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=2)
+                except Exception:
+                    pass 
             
     active_beacons = conn.execute("SELECT * FROM beacons WHERE created_at >= datetime('now', '-2 hours') ORDER BY created_at DESC").fetchall()
     games = [row['name'] for row in conn.execute("SELECT name FROM games").fetchall()]
@@ -874,7 +938,7 @@ def changelog():
 
 @app.route('/admin')
 def admin():
-    if session.get('username') not in ADMINS: return redirect(url_for('home'))
+    if not is_admin(session.get('username')): return redirect(url_for('home'))
     conn = get_db()
     
     conn.execute('''CREATE TABLE IF NOT EXISTS wishlist (
@@ -892,7 +956,7 @@ def admin():
 
 @app.route('/admin/add_game', methods=['POST'])
 def add_game():
-    if session.get('username') not in ADMINS: return redirect(url_for('home'))
+    if not is_admin(session.get('username')): return redirect(url_for('home'))
     if request.form.get('game_name') and request.form.get('steam_appid'):
         conn = get_db()
         try: 
@@ -905,14 +969,14 @@ def add_game():
 
 @app.route('/admin/delete_game/<int:game_id>', methods=['POST'])
 def delete_game(game_id):
-    if session.get('username') not in ADMINS: return redirect(url_for('home'))
+    if not is_admin(session.get('username')): return redirect(url_for('home'))
     conn = get_db()
     conn.execute("DELETE FROM games WHERE id = ?", (game_id,)), conn.commit(), conn.close()
     return redirect(url_for('admin'))
 
 @app.route('/admin/delete_wishlist/<int:req_id>', methods=['POST'])
 def delete_wishlist(req_id):
-    if session.get('username') not in ADMINS: return redirect(url_for('home'))
+    if not is_admin(session.get('username')): return redirect(url_for('home'))
     conn = get_db()
     conn.execute("DELETE FROM wishlist WHERE id = ?", (req_id,))
     conn.commit()
@@ -921,7 +985,7 @@ def delete_wishlist(req_id):
 
 @app.route('/admin/toggle_lock', methods=['POST'])
 def toggle_lock():
-    if session.get('username') not in ADMINS: return redirect(url_for('home'))
+    if not is_admin(session.get('username')): return redirect(url_for('home'))
     conn = get_db()
     row = conn.execute("SELECT value FROM config WHERE key = 'voting_locked'").fetchone()
     current = row['value'] if row else 'false'
@@ -933,7 +997,7 @@ def toggle_lock():
 
 @app.route('/admin/clear_votes', methods=['POST'])
 def clear_votes():
-    if session.get('username') not in ADMINS: return redirect(url_for('admin'))
+    if not is_admin(session.get('username')): return redirect(url_for('admin'))
     conn = get_db()
     conn.execute("DELETE FROM votes"), conn.commit(), conn.close()
     return redirect(url_for('admin'))
